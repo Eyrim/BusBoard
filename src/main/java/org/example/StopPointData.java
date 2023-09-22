@@ -20,33 +20,21 @@ public class StopPointData {
         return stopPoints;
     }
 
-    public class StopPoint {
-        @SerializedName("lines")
-        private Line[] lines;
+    public static class StopPoint {
+        @SerializedName("lineGroup")
+        private LineGroup[] lineGroups;
 
-        public class Line {
-            @SerializedName("id")
-            private String id;
-            @SerializedName("name")
-            private String name;
-            @SerializedName("uri")
-            private String uri;
-
-            public String getId() {
-                return id;
-            }
-
-            public String getName() {
-                return name;
-            }
-
-            public String getUri() {
-                return uri;
-            }
+        public LineGroup[] getLineGroups() {
+            return this.lineGroups;
         }
 
-        public Line[] getLines() {
-            return lines;
+        public static class LineGroup {
+            @SerializedName("naptanIdReference")
+            private String naptanId;
+
+            public String getNaptanId() {
+                return this.naptanId;
+            }
         }
     }
 

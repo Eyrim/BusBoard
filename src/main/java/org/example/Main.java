@@ -23,7 +23,8 @@ public class Main {
             StopPointData.StopPoint[] stopPoints = StopPointData.getStopPoints(getValueFromUser("Enter Postcode:"));
 
             for (StopPointData.StopPoint s : stopPoints) {
-                tflUrl = new URL(String.format(BASE_TFL_URL, s.getLines()));
+                for (StopPointData.StopPoint.LineGroup l : s.getLineGroups()) {
+                    tflUrl = new URL(String.format(BASE_TFL_URL, l.getNaptanId()));
                 /*
                 This is where it breaks ^^^
 
@@ -31,13 +32,15 @@ public class Main {
                 SO I don't know what to append to the URL to get the desired bus data
                  */
 
-                HttpURLConnection con = (HttpURLConnection) tflUrl.openConnection();
+                    HttpURLConnection con = (HttpURLConnection) tflUrl.openConnection();
 
-                con.setRequestMethod("GET");
+                    con.setRequestMethod("GET");
 
-                if (con.getResponseCode() == 200) {
-                    data = readBusData(con.getInputStream());
-                    listBusData(data, 5);
+                    if (con.getResponseCode() == 200) {
+                        data = readBusData(con.getInputStream());
+                        data = sortBusData(data);
+                        listBusData(data, 5);
+                    }
                 }
             }
         } catch (MalformedURLException e) {
@@ -74,6 +77,8 @@ public class Main {
     }
 
     private static void listBusData(BusData[] data, int amount) {
+        amount = Math.min(amount, data.length);
+
         for (int i = 0; i < amount; i++) {
             data[i].listArrival();
         }
