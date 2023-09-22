@@ -1,79 +1,71 @@
 package org.example;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 
+import static org.example.BaseUrls.*;
+
 public class Main {
-    private static final String BASE_TFL_URL = "https://api.tfl.gov.uk/StopPoint/%s/Arrivals";
+    private static final Logger log = LogManager.getLogger();
 
     public static void main(String[] args) {
-        try { // 490000129R
-            BusData[] data;
-            //URL tflUrl = new URL(String.format(BASE_TFL_URL, getValueFromUser("Enter StopPoint ID:")));
-            URL tflUrl;
-            StopPointData.StopPoint[] stopPoints = StopPointData.getStopPoints(getValueFromUser("Enter Postcode:"));
+        PostcodeResult postcodeData;
+        StopPointData stopPointData;
+        StopPointData.StopPoint[] stopPoints;
+        BusData[] busData = null;
 
-            for (StopPointData.StopPoint s : stopPoints) {
-                for (StopPointData.StopPoint.LineGroup l : s.getLineGroups()) {
-                    tflUrl = new URL(String.format(BASE_TFL_URL, l.getNaptanId()));
-                /*
-                This is where it breaks ^^^
+        // 490000129R <- known working stoppoint id
+        postcodeData = RequestHandler.sendGetRequest(
+                String.format(
+                        BASE_POSTCODE_URL.getBaseUrl(),
+                        getPostcodeFromUser()
+                ),
+                PostcodeResult.class
+        );
 
-                I do not understand the data TFL return in the stoppoint endpoint
-                SO I don't know what to append to the URL to get the desired bus data
-                 */
+        stopPointData = RequestHandler.sendGetRequest(
+                String.format(
+                        BASE_STOPPOINT_URL.getBaseUrl(),
+                        postcodeData.getData().getLatitude(),
+                        postcodeData.getData().getLongitude()
+                ),
+                StopPointData.class
+        );
 
-                    HttpURLConnection con = (HttpURLConnection) tflUrl.openConnection();
+        stopPoints = stopPointData.getStopPoints();;
 
-                    con.setRequestMethod("GET");
-
-                    if (con.getResponseCode() == 200) {
-                        data = readBusData(con.getInputStream());
-                        data = sortBusData(data);
-                        listBusData(data, 5);
-                    }
-                }
+        for (StopPointData.StopPoint s : stopPoints) {
+            for (StopPointData.StopPoint.LineGroup l : s.getLineGroups()) {
+                busData = RequestHandler.sendGetRequest(
+                        String.format(
+                                BASE_LIVE_DATA_ARRIVAL_URL.getBaseUrl(),
+                                l.getNaptanId()
+                        ),
+                        BusData[].class
+                );
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+
+        if (busData.length == 0) {
+            log.error("No bus data found: Exiting");
+            System.exit(0);
+        }
+
+        busData = sortBusData(busData);
+        listBusData(busData, 5);
     }
 
+    private static String getPostcodeFromUser() {
+        String input = "";
 
-
-
-
-
-
-    private static BusData[] readBusData(InputStream in) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-//            ArrayList<T> data = new ArrayList<>();
-            BusData[] data;
-            Gson gson = new GsonBuilder().create();
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-
-            while ((inputLine = br.readLine()) != null) {
-                content.append(inputLine);
-            }
-
-            data = gson.fromJson(content.toString(), BusData[].class);
-
-            return data;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        while (input.isEmpty()) {
+            input = getValueFromUser("Enter Postcode:");
+            input = PostcodeResult.validatePostcode(input) ? input : "";
         }
+
+        return input;
     }
 
     private static void listBusData(BusData[] data, int amount) {

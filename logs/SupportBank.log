@@ -1,0 +1,2 @@
+[2023-09-22 13:56:16,139] INFO - Main - Sending get request to: https://api.tfl.gov.uk/StopPoint/490011686E/Arrivals
+[2023-09-22 13:56:16,741] INFO - Main - Response from: https://api.tfl.gov.uk/StopPoint/490011686E/Arrivals: 200

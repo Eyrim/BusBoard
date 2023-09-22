@@ -1,22 +1,33 @@
 package org.example;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import static org.example.BaseUrls.BASE_POSTCODE_VALIDATION_URL;
 
 public class PostcodeResult {
+    private static final Logger log = LogManager.getLogger();
+
     @SerializedName("result")
     private PostcodeData data;
 
     public PostcodeData getData() {
         return data;
+    }
+
+    public static boolean validatePostcode(String postCode) {
+        log.info("Validating postcode:");
+
+        PostcodeValidationResult result = RequestHandler.sendGetRequest(
+                String.format(
+                        BASE_POSTCODE_VALIDATION_URL.getBaseUrl(),
+                        postCode
+                ),
+                PostcodeValidationResult.class
+        );
+
+        return result.isValid();
     }
 
     public static class PostcodeData {
@@ -40,40 +51,12 @@ public class PostcodeResult {
         }
     }
 
-    private static final String BASE_POSTCODE_URL = "https://api.postcodes.io/postcodes/%s";
+    private static class PostcodeValidationResult {
+        @SerializedName("result")
+        private boolean isValid;
 
-    public static PostcodeResult getPostCodeData(String postCode) {
-        try {
-            URL postcodeUrl = new URL(String.format(BASE_POSTCODE_URL, postCode));
-            HttpURLConnection con = (HttpURLConnection) postcodeUrl.openConnection();
-            Gson gson = new GsonBuilder().create();
-
-            if (con.getResponseCode() == 200) {
-                return readPostcodeData(con.getInputStream());
-            } else {
-                throw new RuntimeException("BAD RESPONSE CODE");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static PostcodeResult readPostcodeData(InputStream in) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            PostcodeResult postcodeData;
-            Gson gson = new GsonBuilder().create();
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-
-            while ((inputLine = br.readLine()) != null) {
-                content.append(inputLine);
-            }
-
-            postcodeData = gson.fromJson(content.toString(), PostcodeResult.class);
-
-            return postcodeData;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        public boolean isValid() {
+            return isValid;
         }
     }
 }
