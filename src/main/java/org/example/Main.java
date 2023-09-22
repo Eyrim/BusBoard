@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 
 import static org.example.BaseUrls.*;
+import static org.example.StopPointData.StopPoint.LineGroup;
 
 public class Main {
     private static final Logger log = LogManager.getLogger();
@@ -23,7 +24,7 @@ public class Main {
                         getPostcodeFromUser()
                 ),
                 PostcodeResult.class
-        );
+        );;
 
         stopPointData = RequestHandler.sendGetRequest(
                 String.format(
@@ -37,7 +38,7 @@ public class Main {
         stopPoints = stopPointData.getStopPoints();;
 
         for (StopPointData.StopPoint s : stopPoints) {
-            for (StopPointData.StopPoint.LineGroup l : s.getLineGroups()) {
+            for (LineGroup l : s.getLineGroups()) {
                 busData = RequestHandler.sendGetRequest(
                         String.format(
                                 BASE_LIVE_DATA_ARRIVAL_URL.getBaseUrl(),
