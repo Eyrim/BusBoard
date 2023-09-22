@@ -16,6 +16,11 @@ public class PostcodeResult {
         return data;
     }
 
+    /**
+     * Validates a postcode using <code>postcodes.io/[postcode]/validate</code>
+     * @param postCode The postcode to validate
+     * @return True if valid postcode, false if not
+     */
     public static boolean validatePostcode(String postCode) {
         log.info("Validating postcode:");
 

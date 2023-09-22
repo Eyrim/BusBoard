@@ -15,6 +15,16 @@ import java.net.URL;
 public class RequestHandler {
     private static Logger log = LogManager.getLogger();
 
+    /**
+     * <pre>
+     * Sends a get request to the URL found at href
+     *
+     * The returned data is then parsed into an object of type T
+     * </pre>
+     * @param href The URL to request
+     * @param returnType The type the JSON should be parsed into
+     * @return An object produced via <code>Gson.fromJson(String, Class&lt;T&gt;)</code>
+     */
     public static <T> T sendGetRequest(String href, Class<T> returnType) {
         try {
             URL url = new URL(href);
