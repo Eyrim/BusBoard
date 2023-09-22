@@ -2,6 +2,7 @@ package org.example;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.example.StopPointData.StopPoint;
 
 import java.util.*;
 
@@ -14,7 +15,7 @@ public class Main {
     public static void main(String[] args) {
         PostcodeResult postcodeData;
         StopPointData stopPointData;
-        StopPointData.StopPoint[] stopPoints;
+        StopPoint[] stopPoints;
         BusData[] busData = null;
 
         // 490000129R <- known working stoppoint id
@@ -37,12 +38,12 @@ public class Main {
 
         stopPoints = stopPointData.getStopPoints();;
 
-        for (StopPointData.StopPoint s : stopPoints) {
-            for (LineGroup l : s.getLineGroups()) {
+        for (StopPoint stopPoint : stopPoints) {
+            for (LineGroup lineGroup : stopPoint.getLineGroups()) {
                 busData = RequestHandler.sendGetRequest(
                         String.format(
                                 BASE_LIVE_DATA_ARRIVAL_URL.getBaseUrl(),
-                                l.getNaptanId()
+                                lineGroup.getNaptanId()
                         ),
                         BusData[].class
                 );
