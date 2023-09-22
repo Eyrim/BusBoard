@@ -30,10 +30,18 @@ public class RequestHandler {
             URL url = new URL(href);
             HttpURLConnection con;
 
+            log.info("Sending get request to: " + href);
+
             con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
 
-            return parseJson(readRequestBody(con.getInputStream()), returnType);
+            if (con.getResponseCode() == 200) {
+                log.info("Response code: 200 from: " + href);
+                return parseJson(readRequestBody(con.getInputStream()), returnType);
+            }
+
+            log.error("Response code: " + con.getResponseCode() + " from: " + href);
+            throw new RuntimeException("Non 200 response code from: " + href);
         } catch (IOException e) {
             log.fatal("Request to: " + href + " Failed", e);
             // Rethrow
@@ -44,12 +52,14 @@ public class RequestHandler {
     private static <T> T parseJson(String json, Class<T> type) {
         Gson gson = new GsonBuilder().create();
 
+        log.info("Parsing response");
         // Hopefully fine?
         return gson.fromJson(json, type);
     }
 
     private static String readRequestBody(InputStream in) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            log.info("Reading request body");
             String inputLine;
             StringBuilder content = new StringBuilder();
 
